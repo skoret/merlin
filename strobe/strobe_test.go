@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"github.com/mimoo/StrobeGo/strobe"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -25,8 +26,17 @@ func elapse(t *testing.T, description string, action func()) {
 	t.Logf("%s elapsed in %v", description, elapsed)
 }
 
+func getState(s strobe.Strobe) reflect.Value {
+	v := reflect.ValueOf(s)
+	return v.FieldByName("a")
+}
+
 func assertStrobes(t *testing.T, s1 Strobe, s2 strobe.Strobe) {
-	assert.Equal(t, s1.state, s2.State(), "states aren't the same")
+	state := getState(s2)
+	for i := 0; i < state.Len(); i++ {
+		elem := state.Index(i).Uint()
+		assert.Equal(t, s1.state[i], elem, "states aren't the same")
+	}
 }
 
 const rounds = 1000
@@ -47,7 +57,7 @@ func TestInit(t *testing.T) {
 
 	t.Logf("position: %d", s1.pos)
 	t.Logf("%+v", s1.state)
-	t.Logf("%+v", s2.State())
+	t.Logf("%+v", getState(s2))
 }
 
 func TestAd(t *testing.T) {
@@ -82,7 +92,7 @@ func TestAd(t *testing.T) {
 
 	t.Logf("position: %d", s1.pos)
 	t.Logf("%+v", s1.state)
-	t.Logf("%+v", s2.State())
+	t.Logf("%+v", getState(s2))
 }
 
 func TestPrf(t *testing.T) {
@@ -113,7 +123,7 @@ func TestPrf(t *testing.T) {
 
 	t.Logf("position: %d", s1.pos)
 	t.Logf("s1 state: %v", s1.state)
-	t.Logf("s2 state: %v", s2.State())
+	t.Logf("s2 state: %v", getState(s2))
 	t.Logf("s1 prf32: %v | %s", prf1, hex.EncodeToString(prf1))
 	t.Logf("s2 prf32: %v | %s", prf2, hex.EncodeToString(prf2))
 }
@@ -153,7 +163,7 @@ func TestKey(t *testing.T) {
 
 	t.Logf("position: %d", s1.pos)
 	t.Logf("%+v", s1.state)
-	t.Logf("%+v", s2.State())
+	t.Logf("%+v", getState(s2))
 }
 
 func TestClone(t *testing.T) {
